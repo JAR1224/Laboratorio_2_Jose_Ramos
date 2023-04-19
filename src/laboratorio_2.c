@@ -1,61 +1,45 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
+
+#define OCR1A_VALUE 52
 
 uint8_t counter = 0;
+uint8_t duty_cycle = 2;
 
 int main(void)
 {
+    MCUCR = 0x03; // Configuracion External Interrupt INT0
+    GIMSK = 0x40;
 
-  DDRD = 0x03; // Configuracion del puerto
-  //PORTD = 0x00;
-  DDRB = 0x7F;
-  //PORTB = 0x00;
+    DDRB |= (1 << PB0) | (1 << PB1); // Set PB0 as output
+    //PORTB |= (1 << PB1);
 
-  TCCR0A = 0x02; // Configuracion Timer0
-  TCCR0B = 0x05;
-  OCR0A = 0x4E;
-  TIMSK = 0x01; 
+    TCCR1B |= (1 << WGM12); // Set Timer1 to CTC mode
+    TCCR1B |= (1 << CS11) | (1 << CS10); // Set prescaler to 1024
+    OCR1A = OCR1A_VALUE; // Set OCR1A value for 1 second delay
+    TIMSK |= (1 << OCIE1A); // Enable Timer1 compare match A interrupt
 
-  MCUCR = 0x03; // Configuracion External Interrupt INT0/1 y PCINT
-  GIMSK = 0x40;
+    sei(); // Enable global interrupts
 
-
-  sei();
-
-  PORTB = 0x7F;
-  PORTD = 0x01;
-
-  while (1) {
-    _delay_ms(10000);
-  }
+    while(1)
+    {
+        // Main loop
+    }
 }
 
-ISR( TIMER0_COMPA_vect ) //ISR es la macro que atiende interrupciones
+ISR(TIMER1_COMPA_vect)
 {
-
-  if (counter==0x00) {
-    //PORTB ^= 0x80;
-  }
-  counter +=1;
-  if (counter==100) {
-    counter=0;
-  }
-
+    counter++;
+    if (counter == duty_cycle) {
+        PORTB ^= (1 << PB0); // Toggle PB0
+    } else if (counter == 10) {
+        PORTB ^= (1 << PB0); // Toggle PB0
+        counter = 1;
+    }
 }
 
 ISR( INT0_vect )
 {
-  PORTD ^= 0x03;
-  PORTB = (PIND & 0x78)>>3;
-}
+  PORTB ^= (1 << PB1);
 
-ISR( INT1_vect )
-{
-  //PORTB = 0xFF;
-}
-
-ISR( PCINT0_vect )
-{
-  //PORTD ^= 0x40;
 }
