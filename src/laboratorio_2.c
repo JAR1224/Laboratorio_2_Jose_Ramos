@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define OCR1A_VALUE 52
+#define OCR1A_VALUE 48
 #define ESPERAR_USUARIO 0
 #define LAVAR 1
 #define Hz60_FLAG 0
@@ -175,7 +175,7 @@ int main(void)
     //PORTB |= (1 << PB1);
 
     TCCR1B |= (1 << WGM12); 			// Set Timer1 to CTC mode
-    TCCR1B |= (1 << CS11) | (1 << CS10); 	// Set prescaler to 1024
+    TCCR1B |= (1 << CS11) | (1 << CS10); 	// Set prescaler to 64
     OCR1A = OCR1A_VALUE; 			// Set OCR1A value for 1 second delay
     TIMSK |= (1 << OCIE1A); 			// Enable Timer1 compare match A interrupt
 
